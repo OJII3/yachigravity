@@ -1,0 +1,222 @@
+{
+  "type": "object",
+  "required": ["version", "llm", "runtime", "discord", "features"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "llm": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "agent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "low"
+            },
+            {
+              "type": "string",
+              "const": "medium"
+            },
+            {
+              "type": "string",
+              "const": "high"
+            }
+          ]
+        },
+        "printTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "dangerouslySkipPermissions": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["agentDir"],
+      "properties": {
+        "agentDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "logDir": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "discord": {
+      "type": "object",
+      "required": ["access"],
+      "properties": {
+        "access": {
+          "type": "object",
+          "required": ["default", "directMessages"],
+          "properties": {
+            "default": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "allow"
+                },
+                {
+                  "type": "string",
+                  "const": "deny"
+                }
+              ]
+            },
+            "directMessages": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "allow"
+                },
+                {
+                  "type": "string",
+                  "const": "deny"
+                }
+              ]
+            },
+            "guilds": {
+              "type": "object",
+              "patternProperties": {
+                "^[0-9]+$": {
+                  "type": "object",
+                  "properties": {
+                    "access": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "allow"
+                        },
+                        {
+                          "type": "string",
+                          "const": "deny"
+                        }
+                      ]
+                    },
+                    "channels": {
+                      "type": "object",
+                      "patternProperties": {
+                        "^[0-9]+$": {
+                          "type": "object",
+                          "properties": {
+                            "access": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "allow"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "deny"
+                                }
+                              ]
+                            },
+                            "threads": {
+                              "type": "object",
+                              "patternProperties": {
+                                "^[0-9]+$": {
+                                  "type": "object",
+                                  "properties": {
+                                    "access": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "allow"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "const": "deny"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "agents": {
+      "type": "object",
+      "properties": {
+        "discord": {
+          "type": "object",
+          "properties": {
+            "systemPromptFile": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "webui": {
+          "type": "object",
+          "required": ["enabled"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "host": {
+              "type": "string",
+              "minLength": 1
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$id": "https://github.com/OJII3/antiyachiviy/blob/main/config/antiyachiviy.schema.json",
+  "additionalProperties": false,
+  "title": "Antiyachiviy configuration"
+}
