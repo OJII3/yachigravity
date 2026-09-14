@@ -8,7 +8,7 @@ import { AntigravitySessionReader } from "./antigravity-session-reader.js";
 import { openSession, writeSession } from "../../../runtime/antigravity/session-store.js";
 
 test("lists and reads Antigravity sessions without image data", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "antiyachiviy-session-reader-"));
+  const directory = await mkdtemp(join(tmpdir(), "yachigravity-session-reader-"));
   const handle = await openSession({
     agentDirectory: directory,
     mode: "new",
@@ -59,6 +59,6 @@ test("lists and reads Antigravity sessions without image data", async () => {
 });
 
 test("returns no sessions when the session directory is absent", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "antiyachiviy-session-reader-"));
+  const directory = await mkdtemp(join(tmpdir(), "yachigravity-session-reader-"));
   assert.deepEqual(await new AntigravitySessionReader(directory).list(), []);
 });

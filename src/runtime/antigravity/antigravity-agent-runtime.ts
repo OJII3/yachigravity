@@ -420,9 +420,9 @@ function formatPrompt(
   if (hasConversation) return `${text || "(画像のみ)"}${imageContext}`;
 
   return (
-    `<antiyachiviy-instructions>\n${systemPrompt}\n\n` +
+    `<yachigravity-instructions>\n${systemPrompt}\n\n` +
     "このエージェントは Discord の中継として動作しています。ユーザーに見せる返答は discord_send ツールで送信してください。ツール呼び出しの記法を本文に書かないでください。返答が不要な場合、または discord_send を呼んだ後は通常のテキストを返さないでください。\n" +
-    `</antiyachiviy-instructions>\n\n${text || "(画像のみ)"}${imageContext}`
+    `</yachigravity-instructions>\n\n${text || "(画像のみ)"}${imageContext}`
   );
 }
 
@@ -437,12 +437,12 @@ async function writeMcpConfig(
     `${JSON.stringify(
       {
         mcpServers: {
-          "antiyachiviy-discord": {
+          "yachigravity-discord": {
             command: process.execPath,
             args: [mcpServerPath],
             env: {
-              ANTIYACHIVIY_DISCORD_SEND_ENDPOINT: credentials.endpoint,
-              ANTIYACHIVIY_DISCORD_SEND_TOKEN: credentials.token,
+              YACHIGRAVITY_DISCORD_SEND_ENDPOINT: credentials.endpoint,
+              YACHIGRAVITY_DISCORD_SEND_TOKEN: credentials.token,
             },
           },
         },

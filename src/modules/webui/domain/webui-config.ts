@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 
-import type { AntiyachiviyConfig } from "../../../app/config-schema.js";
+import type { YachigravityConfig } from "../../../app/config-schema.js";
 
 export const DEFAULT_WEBUI_HOST = "127.0.0.1";
 export const DEFAULT_WEBUI_PORT = 4310;
@@ -12,11 +12,11 @@ export interface ResolvedWebUiConfig {
   readonly port: number;
 }
 
-export function resolveLogDirectory(config: AntiyachiviyConfig): string {
+export function resolveLogDirectory(config: YachigravityConfig): string {
   return resolve(config.runtime.logDir ?? DEFAULT_LOG_DIRECTORY);
 }
 
-export function resolveWebUiConfig(config: AntiyachiviyConfig): ResolvedWebUiConfig {
+export function resolveWebUiConfig(config: YachigravityConfig): ResolvedWebUiConfig {
   const webui = config.features.webui;
 
   return {

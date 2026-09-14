@@ -22,8 +22,8 @@ const tool = {
   },
 };
 
-const endpoint = requiredEnvironment("ANTIYACHIVIY_DISCORD_SEND_ENDPOINT");
-const token = requiredEnvironment("ANTIYACHIVIY_DISCORD_SEND_TOKEN");
+const endpoint = requiredEnvironment("YACHIGRAVITY_DISCORD_SEND_ENDPOINT");
+const token = requiredEnvironment("YACHIGRAVITY_DISCORD_SEND_TOKEN");
 
 for await (const line of createInterface({ input: process.stdin })) {
   if (!line.trim()) continue;
@@ -48,7 +48,7 @@ async function handleRequest(line: string): Promise<void> {
     writeResponse(request.id, {
       protocolVersion: protocolVersion(request.params),
       capabilities: { tools: {} },
-      serverInfo: { name: "antiyachiviy-discord", version: "0.1.0" },
+      serverInfo: { name: "yachigravity-discord", version: "0.1.0" },
     });
     return;
   }

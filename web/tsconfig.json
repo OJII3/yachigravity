@@ -6,7 +6,7 @@
     "noEmit": true,
     "rootDir": "..",
     "paths": {
-      "@antiyachiviy/webui/*": ["./../src/modules/webui/*"]
+      "@yachigravity/webui/*": ["./../src/modules/webui/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

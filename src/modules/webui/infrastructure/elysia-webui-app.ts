@@ -28,7 +28,7 @@ export interface WebUiServer {
 }
 
 export function createWebUiApp(dependencies: WebUiDependencies) {
-  return new Elysia({ name: "antiyachiviy-webui" })
+  return new Elysia({ name: "yachigravity-webui" })
     .get("/api/health", () => ({ ok: true }))
     .get(
       "/api/logs",

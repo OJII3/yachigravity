@@ -21,7 +21,7 @@ export async function bootstrap(): Promise<void> {
   const config = await loadConfig();
   const logDirectory = resolveLogDirectory(config);
   const logger = createLogger({ filePath: createLogFilePath(logDirectory) });
-  logger.info({ event: "application_starting" }, "Starting Antiyachiviy");
+  logger.info({ event: "application_starting" }, "Starting Yachigravity");
 
   const systemPrompt = await loadPromptFile(config.agents?.discord?.systemPromptFile);
   const token = process.env.DISCORD_BOT_TOKEN;
@@ -93,6 +93,6 @@ export async function bootstrap(): Promise<void> {
 try {
   await bootstrap();
 } catch (error) {
-  createLogger().fatal({ err: error, event: "bootstrap_failed" }, "Antiyachiviy failed to start");
+  createLogger().fatal({ err: error, event: "bootstrap_failed" }, "Yachigravity failed to start");
   process.exitCode = 1;
 }

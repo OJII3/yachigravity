@@ -18,8 +18,8 @@ export function createLogFilePath(logDirectory: string, now = new Date()): strin
 
 export function createLogger(options: LoggerOptions = {}): Logger {
   const loggerOptions = {
-    name: "antiyachiviy",
-    level: options.level ?? process.env.ANTIYACHIVIY_LOG_LEVEL ?? "info",
+    name: "yachigravity",
+    level: options.level ?? process.env.YACHIGRAVITY_LOG_LEVEL ?? "info",
     redact: [
       "token",
       "apiKey",

@@ -20,7 +20,7 @@ export function AppShell({ view, lastUpdated, onViewChange, onRefresh, children 
           <span className="brand-mark" aria-hidden="true">
             ◒
           </span>
-          <h1 className="eyebrow">ANTIYACHIVIY OBSERVATORY</h1>
+          <h1 className="eyebrow">YACHIGRAVITY OBSERVATORY</h1>
         </div>
         <div className="header-status">
           <span className="status-dot" aria-hidden="true" />
@@ -55,7 +55,7 @@ export function AppShell({ view, lastUpdated, onViewChange, onRefresh, children 
 
       <main>{children}</main>
 
-      <footer className="app-footer">Antiyachiviy / read-only viewer</footer>
+      <footer className="app-footer">Yachigravity / read-only viewer</footer>
     </div>
   );
 }

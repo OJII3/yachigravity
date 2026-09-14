@@ -13,7 +13,7 @@ import {
 import { openSession, writeSession } from "./session-store.js";
 
 test("drives a persistent stream-json process and stores the conversation", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "antiyachiviy-antigravity-"));
+  const directory = await mkdtemp(join(tmpdir(), "yachigravity-antigravity-"));
   const command = join(directory, "fake-agy");
   await writeFile(
     command,
@@ -66,14 +66,14 @@ done
 });
 
 test("does not duplicate a message sent through discord_send", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "antiyachiviy-discord-send-"));
+  const directory = await mkdtemp(join(tmpdir(), "yachigravity-discord-send-"));
   const command = join(directory, "fake-agy");
   await writeFile(
     command,
     `#!/bin/sh
 printf '%s\\n' '{"event":"init","conversation_id":"conversation-123"}'
 while IFS= read -r _line; do
-  printf '%s\\n' '{"event":"step_update","step_update":{"step_type":"tool","tool_name":"mcp__antiyachiviy-discord__discord_send","tool_info":{"output":"sent"}}}'
+  printf '%s\\n' '{"event":"step_update","step_update":{"step_type":"tool","tool_name":"mcp__yachigravity-discord__discord_send","tool_info":{"output":"sent"}}}'
   printf '%s\\n' '{"event":"result","result":{"conversation_id":"conversation-123","status":"SUCCESS","response":"duplicate\\n"}}'
 done
 `,
@@ -122,9 +122,9 @@ done
       "utf8",
     ),
   ) as { mcpServers: Record<string, { args: string[]; env: Record<string, string> }> };
-  assert.equal(config.mcpServers["antiyachiviy-discord"]?.args[0], "/tmp/discord-send-mcp");
+  assert.equal(config.mcpServers["yachigravity-discord"]?.args[0], "/tmp/discord-send-mcp");
   assert.equal(
-    config.mcpServers["antiyachiviy-discord"]?.env.ANTIYACHIVIY_DISCORD_SEND_TOKEN,
+    config.mcpServers["yachigravity-discord"]?.env.YACHIGRAVITY_DISCORD_SEND_TOKEN,
     "token",
   );
 });
@@ -166,7 +166,7 @@ test("parses only supported stream-json events", () => {
 });
 
 test("resumes the latest channel session and creates a new one when requested", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "antiyachiviy-session-store-"));
+  const directory = await mkdtemp(join(tmpdir(), "yachigravity-session-store-"));
   const first = await openSession({
     agentDirectory: directory,
     mode: "new",

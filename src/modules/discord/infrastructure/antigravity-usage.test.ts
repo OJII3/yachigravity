@@ -48,7 +48,7 @@ test("formats the Discord activity with a fallback for unavailable usage", () =>
 });
 
 test("gets usage through agy's non-interactive usage command", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "antiyachiviy-usage-"));
+  const directory = await mkdtemp(join(tmpdir(), "yachigravity-usage-"));
   const command = join(directory, "fake-agy");
   await writeFile(
     command,

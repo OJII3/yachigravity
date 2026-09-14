@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "antiyachiviy",
+      "name": "yachigravity",
       "dependencies": {
         "@elysia/eden": "^1.4.10",
         "@elysia/static": "^1.4.11",
