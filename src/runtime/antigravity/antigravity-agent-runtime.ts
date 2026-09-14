@@ -1,14 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createInterface } from "node:readline";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import type { Logger } from "pino";
 
 import type { AgentDefinition } from "../../agents/core/agent-definition.js";
 import type { AgentFactory, AgentCreationOptions } from "../../agents/core/agent-factory.js";
 import type { AgentImage, AgentPrompt, AgentRuntime } from "../../agents/core/agent-runtime.js";
 import type { SessionMode } from "../../app/cli-options.js";
+import type {
+  DiscordSendMcpCredentials,
+  DiscordSendMcpGateway,
+} from "./discord-send-mcp-gateway.js";
 import {
   type AntigravitySession,
   type AntigravitySessionEvent,
@@ -19,6 +25,7 @@ import {
 const DEFAULT_COMMAND = "agy";
 const DEFAULT_TIMEOUT_SECONDS = 300;
 const SUMMARY_MAX_LENGTH = 500;
+const DEFAULT_MCP_SERVER_PATH = resolveMcpServerPath();
 
 export interface AntigravityAgentFactoryOptions {
   readonly agentDir: string;
@@ -31,6 +38,8 @@ export interface AntigravityAgentFactoryOptions {
     readonly printTimeoutSeconds?: number;
     readonly dangerouslySkipPermissions?: boolean;
   };
+  readonly discordSendGateway?: Pick<DiscordSendMcpGateway, "registerChannel">;
+  readonly mcpServerPath?: string;
   readonly logger: Logger;
 }
 
@@ -59,6 +68,8 @@ export function createAntigravityAgentFactory({
   llm,
   logger,
   sessionMode,
+  discordSendGateway,
+  mcpServerPath = DEFAULT_MCP_SERVER_PATH,
 }: AntigravityAgentFactoryOptions): AgentFactory {
   return {
     async create(
@@ -70,17 +81,25 @@ export function createAntigravityAgentFactory({
         mode: sessionMode,
         sessionKey: options.sessionKey,
       });
-      return new AntigravityAgentRuntime(session.path, session.value, definition.systemPrompt, {
-        agentDirectory: agentDir,
-        command: llm.command ?? DEFAULT_COMMAND,
-        conversationId: session.value.conversationId,
-        effort: llm.effort,
-        agent: llm.agent,
-        logger,
-        model: llm.model,
-        printTimeoutSeconds: llm.printTimeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS,
-        dangerouslySkipPermissions: llm.dangerouslySkipPermissions ?? false,
-      });
+      return new AntigravityAgentRuntime(
+        session.path,
+        session.value,
+        options.sessionKey,
+        definition.systemPrompt,
+        {
+          agentDirectory: agentDir,
+          command: llm.command ?? DEFAULT_COMMAND,
+          conversationId: session.value.conversationId,
+          discordSendGateway,
+          effort: llm.effort,
+          agent: llm.agent,
+          logger,
+          mcpServerPath,
+          model: llm.model,
+          printTimeoutSeconds: llm.printTimeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS,
+          dangerouslySkipPermissions: llm.dangerouslySkipPermissions ?? false,
+        },
+      );
     },
   };
 }
@@ -91,10 +110,12 @@ export class AntigravityAgentRuntime implements AgentRuntime {
   private queue: Promise<string> = Promise.resolve("");
   private disposed = false;
   private session: AntigravitySession;
+  private discordSendUsedForTurn = false;
 
   constructor(
     private readonly sessionPath: string,
     session: AntigravitySession,
+    private readonly sessionKey: string,
     private readonly systemPrompt: string,
     private readonly options: AntigravityRuntimeOptions,
   ) {
@@ -137,6 +158,7 @@ export class AntigravityAgentRuntime implements AgentRuntime {
     await this.appendEvent(userEvent);
 
     await this.ensureProcess();
+    this.discordSendUsedForTurn = false;
     return new Promise<string>((resolveResponse, rejectResponse) => {
       this.pending = { reject: rejectResponse, resolve: resolveResponse };
       const message = JSON.stringify({ event: "user", message: { content } });
@@ -156,7 +178,7 @@ export class AntigravityAgentRuntime implements AgentRuntime {
       this.options.command,
       buildAntigravityArgs({ ...this.options, conversationId: this.session.conversationId }),
       {
-        cwd: process.cwd(),
+        cwd: await this.prepareWorkspace(),
         stdio: ["pipe", "pipe", "pipe"],
       },
     );
@@ -241,6 +263,7 @@ export class AntigravityAgentRuntime implements AgentRuntime {
           timestamp: new Date().toISOString(),
         });
         pending.reject(new Error(`Antigravity turn failed: ${reason}`));
+        this.discordSendUsedForTurn = false;
         continue;
       }
 
@@ -252,7 +275,9 @@ export class AntigravityAgentRuntime implements AgentRuntime {
         content: response,
         timestamp: new Date().toISOString(),
       });
-      pending.resolve(response);
+      const visibleResponse = this.discordSendUsedForTurn ? "" : response;
+      this.discordSendUsedForTurn = false;
+      pending.resolve(visibleResponse);
     }
   }
 
@@ -262,6 +287,9 @@ export class AntigravityAgentRuntime implements AgentRuntime {
     }
     const toolName = typeof step.tool_name === "string" ? step.tool_name : "unknown";
     const toolInfo = "tool_info" in step ? sanitizeValue(step.tool_info) : undefined;
+    if (isDiscordSendTool(toolName) && !hasToolError(toolInfo)) {
+      this.discordSendUsedForTurn = true;
+    }
     await this.appendEvent({
       id: randomUUID(),
       kind: "tool",
@@ -278,6 +306,25 @@ export class AntigravityAgentRuntime implements AgentRuntime {
       modified: event.timestamp,
     };
     await writeSession(this.sessionPath, this.session);
+  }
+
+  private async prepareWorkspace(): Promise<string> {
+    const workspaceDirectory = resolve(
+      this.options.agentDirectory,
+      "workspaces",
+      encodeURIComponent(this.sessionKey),
+    );
+    await mkdir(join(workspaceDirectory, ".agents"), { recursive: true });
+
+    if (this.options.discordSendGateway) {
+      const channelId = this.sessionKey.startsWith("discord-channel:")
+        ? this.sessionKey.slice("discord-channel:".length)
+        : this.sessionKey;
+      const credentials = this.options.discordSendGateway.registerChannel(channelId);
+      await writeMcpConfig(workspaceDirectory, credentials, this.options.mcpServerPath);
+    }
+
+    return workspaceDirectory;
   }
 
   private async saveImages(images: readonly AgentImage[]): Promise<string[]> {
@@ -314,6 +361,8 @@ export interface AntigravityRuntimeOptions {
   readonly effort?: "low" | "medium" | "high";
   readonly printTimeoutSeconds: number;
   readonly dangerouslySkipPermissions: boolean;
+  readonly discordSendGateway?: Pick<DiscordSendMcpGateway, "registerChannel">;
+  readonly mcpServerPath: string;
   readonly logger: Logger;
 }
 
@@ -372,9 +421,55 @@ function formatPrompt(
 
   return (
     `<antiyachiviy-instructions>\n${systemPrompt}\n\n` +
-    "このエージェントは Discord の中継として動作しています。ユーザーに見せる返答だけを通常のテキストで返してください。ツール呼び出しの記法、JSON、内部向け説明は返さないでください。返答が不要な場合は空文字を返してください。\n" +
+    "このエージェントは Discord の中継として動作しています。ユーザーに見せる返答は discord_send ツールで送信してください。ツール呼び出しの記法を本文に書かないでください。返答が不要な場合、または discord_send を呼んだ後は通常のテキストを返さないでください。\n" +
     `</antiyachiviy-instructions>\n\n${text || "(画像のみ)"}${imageContext}`
   );
+}
+
+async function writeMcpConfig(
+  workspaceDirectory: string,
+  credentials: DiscordSendMcpCredentials,
+  mcpServerPath: string,
+): Promise<void> {
+  const configPath = join(workspaceDirectory, ".agents", "mcp_config.json");
+  await writeFile(
+    configPath,
+    `${JSON.stringify(
+      {
+        mcpServers: {
+          "antiyachiviy-discord": {
+            command: process.execPath,
+            args: [mcpServerPath],
+            env: {
+              ANTIYACHIVIY_DISCORD_SEND_ENDPOINT: credentials.endpoint,
+              ANTIYACHIVIY_DISCORD_SEND_TOKEN: credentials.token,
+            },
+          },
+        },
+      },
+      null,
+      2,
+    )}\n`,
+    { mode: 0o600 },
+  );
+}
+
+function isDiscordSendTool(toolName: string): boolean {
+  return (
+    toolName === "discord_send" ||
+    toolName.endsWith("/discord_send") ||
+    toolName.endsWith("__discord_send")
+  );
+}
+
+function hasToolError(toolInfo: unknown): boolean {
+  return isRecord(toolInfo) && "error" in toolInfo && toolInfo.error !== undefined;
+}
+
+function resolveMcpServerPath(): string {
+  const directory = dirname(fileURLToPath(import.meta.url));
+  const bundledPath = resolve(directory, "discord-send-mcp");
+  return existsSync(bundledPath) ? bundledPath : resolve(directory, "discord-send-mcp.ts");
 }
 
 function extractConversationId(event: StreamEvent): string | undefined {

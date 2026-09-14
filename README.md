@@ -36,6 +36,11 @@ bun run start
 コマンド実行まで自動承認するため、信頼できる環境でのみ有効にし、通常は Antigravity 側の
 権限設定を用いること。
 
+ユーザー向けの送信は `discord_send` MCP ツールで行う。headless モードでは MCP ツールも
+権限設定の対象になるため、`~/.gemini/antigravity-cli/settings.json` の `permissions.allow` に
+`mcp(antiyachiviy-discord/discord_send)` を追加するか、信頼できる環境でのみ
+`llm.dangerouslySkipPermissions` を有効にすること。
+
 デフォルトでは前回のチャネル会話を `--conversation` で再開する。次回起動時だけ新規にするには、
 次のようにする。
 

@@ -8,6 +8,7 @@ import { loadPromptFile } from "./prompt.js";
 import { TaskCoordinator } from "./task-coordinator.js";
 import { DiscordAgent } from "../agents/discord/discord-agent.js";
 import { createAntigravityAgentFactory } from "../runtime/antigravity/antigravity-agent-runtime.js";
+import { DiscordSendMcpGateway } from "../runtime/antigravity/discord-send-mcp-gateway.js";
 import { createDiscordAccessPolicy } from "../modules/discord/domain/discord-access-policy.js";
 import { DiscordJsService } from "../modules/discord/infrastructure/discord-js-service.js";
 import { resolveLogDirectory, resolveWebUiConfig } from "../modules/webui/domain/webui-config.js";
@@ -32,10 +33,13 @@ export async function bootstrap(): Promise<void> {
     createDiscordAccessPolicy(config.discord.access),
     logger,
   );
+  const discordSendGateway = new DiscordSendMcpGateway(discordService, logger);
+  await discordSendGateway.start();
   const taskCoordinator = new TaskCoordinator();
   const agentDir = resolve(config.runtime.agentDir);
   const antigravityAgentFactory = createAntigravityAgentFactory({
     agentDir,
+    discordSendGateway,
     llm: config.llm,
     logger,
     sessionMode,
@@ -68,8 +72,9 @@ export async function bootstrap(): Promise<void> {
     await webUi?.stop();
     discordService.stopAccepting();
     await taskCoordinator.waitForCompletion();
-    await discordService.stop();
     await agentCoordinator.dispose();
+    await discordSendGateway.stop();
+    await discordService.stop();
     logger.info({ event: "shutdown_completed" }, "Shutdown complete");
     flushLogger(logger);
   };

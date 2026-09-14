@@ -6,7 +6,7 @@
   "author": "OJII3",
   "type": "module",
   "scripts": {
-    "build": "bun run build:web && bun build --target=bun --production --outfile=dist/antiyachiviy src/app/bootstrap.ts",
+    "build": "bun run build:web && bun build --target=bun --production --outfile=dist/antiyachiviy src/app/bootstrap.ts && bun build --target=bun --production --outfile=dist/discord-send-mcp src/runtime/antigravity/discord-send-mcp.ts",
     "build:web": "bun build web/index.html --outdir dist/web --minify",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
