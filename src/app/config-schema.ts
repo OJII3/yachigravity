@@ -60,7 +60,7 @@ const WebUiConfigurationSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const AntiyachiviyConfigSchema = Type.Object(
+export const YachigravityConfigSchema = Type.Object(
   {
     $schema: Type.Optional(Type.String({ minLength: 1 })),
     version: Type.Literal(1),
@@ -101,10 +101,10 @@ export const AntiyachiviyConfigSchema = Type.Object(
     ),
   },
   {
-    $id: "https://github.com/OJII3/antiyachiviy/blob/main/config/antiyachiviy.schema.json",
+    $id: "https://github.com/OJII3/yachigravity/blob/main/config/yachigravity.schema.json",
     additionalProperties: false,
-    title: "Antiyachiviy configuration",
+    title: "Yachigravity configuration",
   },
 );
 
-export type AntiyachiviyConfig = Static<typeof AntiyachiviyConfigSchema>;
+export type YachigravityConfig = Static<typeof YachigravityConfigSchema>;

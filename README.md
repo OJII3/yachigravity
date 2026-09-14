@@ -1,4 +1,4 @@
-# Antiyachiviy
+# Yachigravity
 
 `agy` (Google Antigravity CLI) を Discord の会話エージェントとして利用する bot。
 Klein の Discord・アクセス制御・ログ・読み取り専用 Web UI を移植し、LLM との通信は
@@ -17,10 +17,10 @@ agy
 設定と環境変数を用意する。
 
 ```sh
-cp config/antiyachiviy.example.json config/antiyachiviy.json
+cp config/yachigravity.example.json config/yachigravity.json
 cp .env.example .env
 ${EDITOR:-vi} .env
-${EDITOR:-vi} config/antiyachiviy.json
+${EDITOR:-vi} config/yachigravity.json
 ```
 
 `DISCORD_BOT_TOKEN` と Discord のアクセスルールを設定し、起動する。
@@ -43,7 +43,7 @@ bun run start
 
 ユーザー向けの送信は `discord_send` MCP ツールで行う。headless モードでは MCP ツールも
 権限設定の対象になるため、`~/.gemini/antigravity-cli/settings.json` の `permissions.allow` に
-`mcp(antiyachiviy-discord/discord_send)` を追加するか、信頼できる環境でのみ
+`mcp(yachigravity-discord/discord_send)` を追加するか、信頼できる環境でのみ
 `llm.dangerouslySkipPermissions` を有効にすること。
 
 デフォルトでは前回のチャネル会話を `--conversation` で再開する。次回起動時だけ新規にするには、
@@ -54,7 +54,7 @@ bun run start -- --new
 bun run start -- --resume
 ```
 
-`--resume` がデフォルト。`ANTIYACHIVIY_CONFIG_PATH` で設定ファイルの場所を変更できる。
+`--resume` がデフォルト。`YACHIGRAVITY_CONFIG_PATH` で設定ファイルの場所を変更できる。
 Antigravity のモデル・agent・reasoning effort は `llm` で指定できる。
 
 ## Web UI
@@ -64,7 +64,7 @@ Antigravity セッションを閲覧できる。デフォルトは `http://127.0
 
 ```sh
 bun run build
-bun dist/antiyachiviy
+bun dist/yachigravity
 ```
 
 ログは標準出力と `runtime.logDir`（デフォルト `.runtime/logs`）以下に、セッションは

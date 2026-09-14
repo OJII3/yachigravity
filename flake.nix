@@ -1,5 +1,5 @@
 {
-  description = "Antiyachiviy development environment";
+  description = "Yachigravity development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";

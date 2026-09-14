@@ -2,17 +2,17 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Check, Errors } from "typebox/value";
 
-import { AntiyachiviyConfigSchema, type AntiyachiviyConfig } from "./config-schema.js";
+import { YachigravityConfigSchema, type YachigravityConfig } from "./config-schema.js";
 
-export const DEFAULT_CONFIG_PATH = "config/antiyachiviy.json";
+export const DEFAULT_CONFIG_PATH = "config/yachigravity.json";
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
 }
 
 export async function loadConfig(
-  configPath = process.env.ANTIYACHIVIY_CONFIG_PATH ?? DEFAULT_CONFIG_PATH,
-): Promise<AntiyachiviyConfig> {
+  configPath = process.env.YACHIGRAVITY_CONFIG_PATH ?? DEFAULT_CONFIG_PATH,
+): Promise<YachigravityConfig> {
   const resolvedConfigPath = resolve(configPath);
 
   let content: string;
@@ -21,12 +21,12 @@ export async function loadConfig(
   } catch (error) {
     if (isNodeError(error) && error.code === "ENOENT") {
       throw new Error(
-        `Antiyachiviy config was not found: ${resolvedConfigPath}. ` +
-          `Copy config/antiyachiviy.example.json to config/antiyachiviy.json first.`,
+        `Yachigravity config was not found: ${resolvedConfigPath}. ` +
+          `Copy config/yachigravity.example.json to config/yachigravity.json first.`,
       );
     }
 
-    throw new Error(`Failed to read Antiyachiviy config: ${resolvedConfigPath}`, {
+    throw new Error(`Failed to read Yachigravity config: ${resolvedConfigPath}`, {
       cause: error,
     });
   }
@@ -35,18 +35,18 @@ export async function loadConfig(
   try {
     value = JSON.parse(content);
   } catch (error) {
-    throw new Error(`Antiyachiviy config is not valid JSON: ${resolvedConfigPath}`, {
+    throw new Error(`Yachigravity config is not valid JSON: ${resolvedConfigPath}`, {
       cause: error,
     });
   }
 
-  if (!Check(AntiyachiviyConfigSchema, value)) {
-    const errors = Errors(AntiyachiviyConfigSchema, value)
+  if (!Check(YachigravityConfigSchema, value)) {
+    const errors = Errors(YachigravityConfigSchema, value)
       .slice(0, 5)
       .map((error) => `${error.instancePath || "$"}: ${error.message}`)
       .join("; ");
 
-    throw new Error(`Antiyachiviy config is invalid: ${resolvedConfigPath}. ${errors}`);
+    throw new Error(`Yachigravity config is invalid: ${resolvedConfigPath}. ${errors}`);
   }
 
   return value;

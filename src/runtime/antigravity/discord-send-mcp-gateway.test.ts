@@ -64,8 +64,8 @@ test("serves discord_send over the MCP stdio protocol", async () => {
   const child = spawn(process.execPath, [serverPath], {
     env: {
       ...process.env,
-      ANTIYACHIVIY_DISCORD_SEND_ENDPOINT: credentials.endpoint,
-      ANTIYACHIVIY_DISCORD_SEND_TOKEN: credentials.token,
+      YACHIGRAVITY_DISCORD_SEND_ENDPOINT: credentials.endpoint,
+      YACHIGRAVITY_DISCORD_SEND_TOKEN: credentials.token,
     },
     stdio: ["pipe", "pipe", "pipe"],
   });
@@ -85,7 +85,7 @@ test("serves discord_send over the MCP stdio protocol", async () => {
     assert.deepEqual(initialized.result, {
       protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
-      serverInfo: { name: "antiyachiviy-discord", version: "0.1.0" },
+      serverInfo: { name: "yachigravity-discord", version: "0.1.0" },
     });
 
     child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');

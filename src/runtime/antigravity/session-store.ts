@@ -21,20 +21,20 @@ export interface AntigravitySession {
   readonly events: readonly AntigravitySessionEvent[];
 }
 
-export interface AntiyachiviySessionOptions {
+export interface YachigravitySessionOptions {
   readonly agentDirectory: string;
   readonly sessionKey: string;
   readonly mode: "new" | "resume";
 }
 
-export interface AntiyachiviySessionHandle {
+export interface YachigravitySessionHandle {
   readonly path: string;
   readonly value: AntigravitySession;
 }
 
 export async function openSession(
-  options: AntiyachiviySessionOptions,
-): Promise<AntiyachiviySessionHandle> {
+  options: YachigravitySessionOptions,
+): Promise<YachigravitySessionHandle> {
   const sessionDirectory = resolve(
     options.agentDirectory,
     "sessions",
@@ -91,7 +91,7 @@ export async function readSession(path: string): Promise<AntigravitySession | un
 
 async function findLatestSession(
   directory: string,
-): Promise<AntiyachiviySessionHandle | undefined> {
+): Promise<YachigravitySessionHandle | undefined> {
   let entries;
   try {
     entries = await readdir(directory, { withFileTypes: true });
@@ -111,7 +111,7 @@ async function findLatestSession(
   );
 
   return sessions
-    .filter((session): session is AntiyachiviySessionHandle => session !== undefined)
+    .filter((session): session is YachigravitySessionHandle => session !== undefined)
     .sort((left, right) => right.value.modified.localeCompare(left.value.modified))[0];
 }
 
