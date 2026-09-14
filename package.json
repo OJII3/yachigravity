@@ -1,0 +1,41 @@
+{
+  "name": "antiyachiviy",
+  "version": "0.1.0",
+  "description": "Discord communication agent powered by the Antigravity CLI.",
+  "license": "MIT",
+  "author": "OJII3",
+  "type": "module",
+  "scripts": {
+    "build": "bun run build:web && bun build --target=bun --production --outfile=dist/antiyachiviy src/app/bootstrap.ts && bun build --target=bun --production --outfile=dist/discord-send-mcp src/runtime/antigravity/discord-send-mcp.ts",
+    "build:web": "bun build web/index.html --outdir dist/web --minify",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "generate:config-schema": "bun scripts/generate-config-schema.ts && bunx oxfmt config/antiyachiviy.schema.json",
+    "start": "bun run build:web && bun src/app/bootstrap.ts",
+    "test": "bun test",
+    "typecheck": "tsc && tsc -p web/tsconfig.json"
+  },
+  "dependencies": {
+    "@elysia/eden": "^1.4.10",
+    "@elysia/static": "^1.4.11",
+    "discord.js": "^14.27.0",
+    "elysia": "^1.4.30",
+    "ky": "^2.1.0",
+    "pino": "^10.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-json-view-lite": "^2.5.0",
+    "typebox": "^1.3.19"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.79.0",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "bun@1.4.2"
+}

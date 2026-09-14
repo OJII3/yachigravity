@@ -1,3 +1,14 @@
 # direnv
 /.envrc
 /.direnv/
+
+# local secrets and runtime state
+/.env
+/.runtime/
+
+# local configuration
+/config/antiyachiviy.json
+
+# JavaScript dependencies and build output
+/node_modules/
+/dist/

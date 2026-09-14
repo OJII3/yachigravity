@@ -1,0 +1,48 @@
+{
+  "$schema": "./antiyachiviy.schema.json",
+  "version": 1,
+  "llm": {
+    "command": "agy",
+    "model": "gemini-3.7-flash-medium",
+    "effort": "medium",
+    "printTimeoutSeconds": 300,
+    "dangerouslySkipPermissions": false
+  },
+  "runtime": {
+    "agentDir": ".runtime/antigravity",
+    "logDir": ".runtime/logs"
+  },
+  "agents": {
+    "discord": {
+      "systemPromptFile": "config/SOUL.md"
+    }
+  },
+  "discord": {
+    "access": {
+      "default": "deny",
+      "directMessages": "allow",
+      "guilds": {
+        "123456789012345678": {
+          "access": "allow",
+          "channels": {
+            "234567890123456789": {
+              "access": "deny",
+              "threads": {
+                "345678901234567890": {
+                  "access": "allow"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "features": {
+    "webui": {
+      "enabled": false,
+      "host": "127.0.0.1",
+      "port": 4310
+    }
+  }
+}

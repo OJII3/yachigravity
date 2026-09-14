@@ -1,0 +1,80 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { DiscordAgent } from "./discord-agent.js";
+import type { AgentFactory } from "../core/agent-factory.js";
+import type { DiscordMessage } from "../../modules/discord/domain/discord-message.js";
+import type { DiscordService } from "../../modules/discord/ports/discord-service.js";
+
+const message: DiscordMessage = {
+  author: { displayName: "さつき", id: "user-1", username: "satsuki" },
+  channelId: "channel-1",
+  content: "こんにちは",
+  id: "message-1",
+  images: [],
+};
+
+test("sends the Antigravity result to Discord", async () => {
+  let receivedPrompt = "";
+  const sent: string[] = [];
+  const agentFactory: AgentFactory = {
+    async create(definition, options) {
+      assert.equal(definition.systemPrompt, "system prompt");
+      assert.equal(options.sessionKey, "discord-channel:channel-1");
+      return {
+        async prompt(prompt) {
+          receivedPrompt = prompt.text;
+          return "返答です";
+        },
+        dispose() {},
+      };
+    },
+  };
+  const discordService = {
+    async sendMessage(_channelId: string, content: string) {
+      sent.push(content);
+    },
+  } as Pick<DiscordService, "sendMessage">;
+
+  const agent = await DiscordAgent.create(
+    agentFactory,
+    discordService as DiscordService,
+    message.channelId,
+    "system prompt",
+  );
+  await agent.prompt(message);
+
+  assert.match(receivedPrompt, /さつき/);
+  assert.deepEqual(sent, ["返答です"]);
+  agent.dispose();
+});
+
+test("does not send an empty Antigravity result", async () => {
+  const sent: string[] = [];
+  const agentFactory: AgentFactory = {
+    async create() {
+      return {
+        async prompt() {
+          return "  \n";
+        },
+        dispose() {},
+      };
+    },
+  };
+  const discordService = {
+    async sendMessage(_channelId: string, content: string) {
+      sent.push(content);
+    },
+  } as Pick<DiscordService, "sendMessage">;
+
+  const agent = await DiscordAgent.create(
+    agentFactory,
+    discordService as DiscordService,
+    message.channelId,
+    "system prompt",
+  );
+  await agent.prompt(message);
+
+  assert.deepEqual(sent, []);
+  agent.dispose();
+});
