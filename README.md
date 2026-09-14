@@ -35,6 +35,8 @@ You can enable the Web UI by setting `features.webui.enabled` in the config. The
 - Gemini models are bad at coding, so your Google AI Plus subscription was useless.
 - Uses the official Antigravity CLI as a backend—no third-party client required.
 
+Prompts are based on [tsukumijima/YacchoGPT](https://github.com/tsukumijima/YacchoGPT).
+
 ## Future Developments
 
 Most discord features will follow [Klein](https://github.com/ojii3/klein), but other features will not be added.
