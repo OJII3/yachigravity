@@ -1,5 +1,6 @@
 import {
   Client,
+  ActivityType,
   Events,
   GatewayIntentBits,
   Partials,
@@ -24,11 +25,25 @@ import type {
   DiscordService,
   DiscordSlashCommandHandler,
 } from "../ports/discord-service.js";
+import {
+  createAntigravityUsageProvider,
+  formatWeeklyUsageActivity,
+  type WeeklyUsage,
+  type WeeklyUsageProvider,
+} from "./antigravity-usage.js";
 
 const DISCORD_MESSAGE_LIMIT = 2_000;
 const DISCORD_IMAGE_MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024;
 const DISCORD_IMAGE_FETCH_TIMEOUT_MS = 15_000;
 const DISCORD_IMAGE_MIME_TYPES = new Set(["image/gif", "image/jpeg", "image/png", "image/webp"]);
+const DEFAULT_ANTIGRAVITY_COMMAND = "agy";
+const DEFAULT_WEEKLY_USAGE_REFRESH_INTERVAL_MS = 5 * 60 * 1_000;
+
+export interface DiscordJsServiceOptions {
+  readonly antigravityCommand?: string;
+  readonly weeklyUsageProvider?: WeeklyUsageProvider;
+  readonly weeklyUsageRefreshIntervalMs?: number;
+}
 
 interface SendableChannel {
   send(content: string): Promise<unknown>;
@@ -134,13 +149,24 @@ export class DiscordJsService implements DiscordService {
   private messageListener?: (message: Message) => void;
   private acceptingMessages = false;
   private readonly logger?: Logger;
+  private readonly weeklyUsageProvider: WeeklyUsageProvider;
+  private readonly weeklyUsageRefreshIntervalMs: number;
+  private weeklyUsageRefreshTimer?: ReturnType<typeof setInterval>;
+  private weeklyUsageRefreshInFlight?: Promise<void>;
+  private weeklyUsageRefreshEnabled = false;
 
   constructor(
     private readonly token: string,
     private readonly accessPolicy: DiscordAccessPolicy,
     logger?: Logger,
+    options: DiscordJsServiceOptions = {},
   ) {
     this.logger = logger?.child({ component: "discord-service" });
+    this.weeklyUsageProvider =
+      options.weeklyUsageProvider ??
+      createAntigravityUsageProvider(options.antigravityCommand ?? DEFAULT_ANTIGRAVITY_COMMAND);
+    this.weeklyUsageRefreshIntervalMs =
+      options.weeklyUsageRefreshIntervalMs ?? DEFAULT_WEEKLY_USAGE_REFRESH_INTERVAL_MS;
     this.client = new Client({
       intents: [
         GatewayIntentBits.DirectMessages,
@@ -167,6 +193,7 @@ export class DiscordJsService implements DiscordService {
         },
         "Discord client is ready",
       );
+      this.startWeeklyUsageRefresh();
     });
     this.messageListener = (message) => {
       void this.handleMessage(message).catch((error: unknown) => {
@@ -238,6 +265,7 @@ export class DiscordJsService implements DiscordService {
     this.onMessage = undefined;
     this.onSlashCommand = undefined;
     this.stopAccepting();
+    this.stopWeeklyUsageRefresh();
     this.channels.clear();
     this.client.destroy();
   }
@@ -253,6 +281,53 @@ export class DiscordJsService implements DiscordService {
 
     this.channels.set(channelId, channel);
     return channel;
+  }
+
+  private startWeeklyUsageRefresh(): void {
+    this.stopWeeklyUsageRefresh();
+    this.weeklyUsageRefreshEnabled = true;
+    this.setWeeklyUsageActivity(undefined);
+    void this.refreshWeeklyUsage();
+    this.weeklyUsageRefreshTimer = setInterval(() => {
+      void this.refreshWeeklyUsage();
+    }, this.weeklyUsageRefreshIntervalMs);
+  }
+
+  private stopWeeklyUsageRefresh(): void {
+    this.weeklyUsageRefreshEnabled = false;
+    if (this.weeklyUsageRefreshTimer) {
+      clearInterval(this.weeklyUsageRefreshTimer);
+      this.weeklyUsageRefreshTimer = undefined;
+    }
+  }
+
+  private refreshWeeklyUsage(): Promise<void> {
+    if (this.weeklyUsageRefreshInFlight) return this.weeklyUsageRefreshInFlight;
+
+    const refresh = this.weeklyUsageProvider
+      .getWeeklyUsage()
+      .then((usage) => {
+        if (this.weeklyUsageRefreshEnabled) this.setWeeklyUsageActivity(usage);
+      })
+      .catch((error: unknown) => {
+        this.logger?.warn(
+          { err: error, event: "discord_weekly_usage_refresh_failed" },
+          "Failed to refresh Discord weekly usage activity",
+        );
+      });
+    this.weeklyUsageRefreshInFlight = refresh;
+    void refresh.finally(() => {
+      if (this.weeklyUsageRefreshInFlight === refresh) {
+        this.weeklyUsageRefreshInFlight = undefined;
+      }
+    });
+    return refresh;
+  }
+
+  private setWeeklyUsageActivity(usage: WeeklyUsage | undefined): void {
+    this.client.user?.setActivity(formatWeeklyUsageActivity(usage), {
+      type: ActivityType.Watching,
+    });
   }
 
   private async handleMessage(message: Message): Promise<void> {

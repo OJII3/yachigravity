@@ -29,6 +29,11 @@ ${EDITOR:-vi} config/antiyachiviy.json
 bun run start
 ```
 
+起動後、Discord bot のアクティビティには Antigravity の週次 quota 残量を
+`N%/w (reset in M days)` の形式で表示する。残量は起動時と5分ごとに
+`agy -p /usage --output-format json` で更新され、取得できない場合は
+`--%/w (reset in -- days)` を表示する。
+
 `agy` はチャネルごとに一つの長寿命 subprocess として起動される。stdin へ
 `{"event":"user","message":{"content":"..."}}` を NDJSON で送り、stdout の
 `result` event を待つことで、同じ会話を維持する。`llm.dangerouslySkipPermissions` を有効にした

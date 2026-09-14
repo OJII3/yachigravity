@@ -12,13 +12,15 @@ import { DiscordJsService } from "./discord-js-service.js";
 
 type TestableDiscordJsService = {
   readonly client: {
-    user: { id: string } | null;
+    user: { id: string; setActivity?: (...args: unknown[]) => unknown } | null;
   };
   acceptingMessages: boolean;
   onMessage?: DiscordMessageHandler;
   onSlashCommand?: DiscordSlashCommandHandler;
   handleMessage(message: Message): Promise<void>;
   handleInteraction(interaction: Interaction): Promise<void>;
+  startWeeklyUsageRefresh(): void;
+  stopWeeklyUsageRefresh(): void;
 };
 
 function createMessage(
@@ -196,6 +198,38 @@ test("rejects slash commands outside the Discord access policy", async () => {
       { content: "この場所ではコマンドを利用できません。", ephemeral: true },
     ]);
   } finally {
+    await service.stop();
+  }
+});
+
+test("updates the Discord activity with weekly usage", async () => {
+  const service = new DiscordJsService(
+    "token",
+    createDiscordAccessPolicy({ default: "allow", directMessages: "allow" }),
+    undefined,
+    {
+      weeklyUsageProvider: {
+        getWeeklyUsage: async () => ({ remainingPercentage: 73, resetInDays: 2 }),
+      },
+      weeklyUsageRefreshIntervalMs: 60_000,
+    },
+  );
+  const testableService = service as unknown as TestableDiscordJsService;
+  const activities: string[] = [];
+  testableService.client.user = {
+    id: "bot-123",
+    setActivity: (name: unknown) => {
+      activities.push(String(name));
+    },
+  };
+
+  try {
+    testableService.startWeeklyUsageRefresh();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.deepEqual(activities, ["--%/w (reset in -- days)", "73%/w (reset in 2 days)"]);
+  } finally {
+    testableService.stopWeeklyUsageRefresh();
     await service.stop();
   }
 });

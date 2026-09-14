@@ -32,6 +32,7 @@ export async function bootstrap(): Promise<void> {
     token,
     createDiscordAccessPolicy(config.discord.access),
     logger,
+    { antigravityCommand: config.llm.command },
   );
   const discordSendGateway = new DiscordSendMcpGateway(discordService, logger);
   await discordSendGateway.start();
