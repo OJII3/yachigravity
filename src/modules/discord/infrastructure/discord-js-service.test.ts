@@ -227,7 +227,7 @@ test("updates the Discord activity with weekly usage", async () => {
     testableService.startWeeklyUsageRefresh();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    assert.deepEqual(activities, ["--%/w (reset in -- days)", "73%/w (reset in 2 days)"]);
+    assert.deepEqual(activities, ["--%/week (reset in -- days)", "73%/week (reset in 2 days)"]);
   } finally {
     testableService.stopWeeklyUsageRefresh();
     await service.stop();

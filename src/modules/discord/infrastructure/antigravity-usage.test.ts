@@ -42,9 +42,9 @@ test("parses structured usage JSON nested in the print response", () => {
 test("formats the Discord activity with a fallback for unavailable usage", () => {
   assert.equal(
     formatWeeklyUsageActivity({ remainingPercentage: 73, resetInDays: 2 }),
-    "73%/w (reset in 2 days)",
+    "73%/week (reset in 2 days)",
   );
-  assert.equal(formatWeeklyUsageActivity(undefined), "--%/w (reset in -- days)");
+  assert.equal(formatWeeklyUsageActivity(undefined), "--%/week (reset in -- days)");
 });
 
 test("gets usage through agy's non-interactive usage command", async () => {
